@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Web Component</title>
+    <script src="webcalendar.js"></script>
+    <script>
+        var greens = [3, 4];
+    </script>
+    <style>
+        * {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+        }
+        a {
+            text-decoration: none;
+            color: royalblue;
+        }
+        quiz-element {
+            display: block;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quiz Component</h1>
+    <p>A HTML web component for displaying quizzes on web pages.</p>
+    <template id="quiz">
+        <style>
+            * {
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+            }
+            table {
+                padding: 0;
+                margin: 0;
+            }
+            th {
+                padding: 0;
+                margin: 0;
+                width: 30px;
+                height: 30px;
+            }
+            a {
+                text-decoration: none;
+                color: royalblue;
+            }
+            td {
+                margin: 5px;
+                padding: 0;
+                padding: 3px;
+            }
+            .header {
+                background-color: lavender;
+                text-align: center;
+                padding: 10px;
+            }
+            .item {
+                background-color: #f7f7f7;
+                width: 30px;
+                height: 30px;
+                text-align: center;
+            }
+            .item span {
+                opacity: 0.5;
+            }
+            li {
+                margin-bottom: 10px;
+                border: 1px solid #ccc;
+                padding: 10px;
+            }
+            ul {
+                list-style-type: none;
+                padding: 0;
+            }
+            .explanation {
+                margin-top: 10px;
+            }
+        </style>
+    </template>
+    <script>
+        class Quiz extends HTMLElement {
+            constructor () {
+                super();
+            }
+
+            connectedCallback() {
+                var question = this.getAttribute("data-question");
+
+                // options are option-1, option-2, option-3, option-4
+                var all_attributes = this.attributes;
+
+                var template = document.getElementById("quiz");
+
+                var options = [];
+
+                for (var i = 0; i < all_attributes.length; i++) {
+                    var attribute = all_attributes[i];
+                    var attribute_name = attribute.name;
+                    var attribute_value = attribute.value;
+
+                    if (attribute_name.includes("option")) {
+                        options.push(attribute_value);
+                    }
+                }
+
+                var answer = this.getAttribute("answer");
+                var explanation = this.getAttribute("explanation");
+
+                this.innerHTML = `
+                    ${template.innerHTML}
+                    <h2>${question}</h2>
+                    <ul data-frozen="false">
+                        ${options.map((option) => {
+                            var idx = options.indexOf(option) + 1;
+                            return `<li><a href="#" id="option-${option}">${option}</a>
+                                <span id="option-${option}-explanation" style="display: none;" class="explanation">${this.getAttribute(`explain-${idx}`) || ""}</span>
+                            </li>`;
+                        }).join("")}
+                    </ul>
+                `;
+
+                for (var i = 0; i < options.length; i++) {
+                    var option = options[i];
+                    var option_element = document.getElementById(`option-${option}`);
+                    option_element.addEventListener("click", function (event) {
+                        event.preventDefault();
+                        if (event.target.parentElement.parentElement.getAttribute("data-frozen") === "true") {
+                            return;
+                        }
+                        var option_text = event.target.innerText;
+                        // set background to light green or light red
+                        if (option_text == answer) {
+                            // set border of list item to green
+                            var list_item = event.target.parentElement;
+                            list_item.style.backgroundColor = "lightgreen";
+
+                            event.target.parentElement.parentElement.setAttribute("data-frozen", "true");
+                            // set border to green
+                        } else {
+                            event.target.style.textDecoration = "line-through";
+                        }
+                        event.target.setAttribute("aria-label", `${option_text} is incorrect`);
+                        document.getElementById(`option-${option_text}-explanation`).style.display = "block";
+                    });
+                }
+            }
+        }
+
+        customElements.define("quiz-element", Quiz);
+
+    </script>
+    <quiz-element data-question="What is James' favourite Taylor Swift song?" option-1="Folklore" option-2="Midnights" option-3="Evermore" option-4="1989" answer="1989" explain-4="1989 is the best!" explain-1="This is incorrect."></quiz-element>
+    <footer>
+        <p>Created with <span style="color: red;">&hearts;</span> by <a href="https://jamesg.blog">capjamesg</a>.</p>
+        <p>View the source code on <a href="https://github.com/capjamesg/webcalendar">GitHub</a>.</p>
+    </footer>
+</body>
+</html>
